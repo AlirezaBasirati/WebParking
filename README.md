@@ -23,7 +23,7 @@ Install if not it is installed on your machine:<br>
     • http://localhost:8000/api/documentation# “for swagger” <br>
     • OR Import the postman collection file(WebParking.postman_collection) that is in the root of project <br>
 
-<b>How To Run Test:<b><br>
+<b>How To Run Test:</b><br>
     • Run php artisan test<br>
 
 <b>Architecture Choice:</b><br>

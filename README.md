@@ -1,61 +1,53 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Overview :
+This application showcases fundamental skills: clean code practices, solid, the Laravel framework, selected design patterns, and a foundational understanding of architecture and system design. I wrote several tests to illustrate my approach to testing, though coverage is not yet complete. I kept the assignment intentionally simple with minimal dependencies—see the setup instructions for details. While this is a take-home assignment, the design is built to scale; I’m happy to discuss options for expanding it.
+    • Focus: clean code, solid, Laravel, common design patterns, basic low level architecture/system design.
+    • Tests: several included; coverage not yet complete.
+    • Scope: intentionally simple; minimal dependencies (see setup instructions).
+    • Scalability: designed with room to grow; open to discussing next steps.
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Setup Instruction :
+ 
+Install if not it is installed on your machine:
+1-PHP.8    2-Composer 3-Mysql.8
+    • Clone Project
+    • CD .../your project folder
+    • Run composer install
+    • Create a database on mysql
+    • Set database name, mysql username and password in .env
+    • php artisan migrate “to create tables”
+    • php artisan serve “to run the project” 
+    • php artisan queue:work –queue=exact “to start the exact job”
+    • http://localhost:8000/api/documentation# “for swagger”
+    • OR Import the postman collection file(WebParking.postman_collection) that is in the root of project
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+How To Run Test:
+    • Run php artisan test
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Architecture Choice:
 
-## Learning Laravel
+Architecture Choices. The service exposes a REST endpoint to receive invoices, persists them, and forwards them asynchronously to the external provider. We use Laravel’s container for dependency injection to isolate boundaries (ExactOnlineInterface, repositories) and enable test doubles. Invoice forwarding runs in a queued job (SendInvoiceToExact) backed by MySQL, which keeps API latency low and enables controlled retries.
+Reliability. Calls to the provider use strict HTTP timeouts and an idempotency key derived from business identifiers. Transient failures (5xx/timeouts) are retried with exponential backoff and jitter; rate limits (429) honor Retry-After. A lightweight circuit breaker in cache avoids hammering the provider during incidents by deferring jobs temporarily.
+Data & Status. Invoice lifecycle is tracked via statuses: draft → posted → forwarded or failed. 
+Duplicate responses (409) are treated as failed if the remote invoice matches our idempotency key. 
+Observability. Every attempt is logged with correlation IDs and persisted to an external call log for auditability. The API returns 201 Accepted with a tracking ID.
+Testing. We mock ExactOnlineInterface to simulate 429/409/5xx paths, fake the queue for enqueue assertions, and run feature tests against MySQL. This ensures correctness of retries, idempotency, and terminal states without calling the real provider.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* This is a minimal design. It would be more production-ready if I implemented:
+    • Factory Design Pattern for handling fallback. 
+    • More worker than 1.
+    • More jobs to handle each response from Exact.
+    • Service For Log management to support multi service. 
+    • Service For send notifications
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+My approach to simulating Exact Online
+    • Interface-first design: I depend on an ExactOnlineInterface so the simulator can be swapped for a real HTTP client without touching business logic.
+    • Scenario modeling: The mock returns realistic outcomes for invoice creation—201 Created, 409 Conflict (duplicate), 429 Too Many Requests, and 500 Internal Server Error—each with structured payloads via ExactResponse.
+    • Idempotency handling: On duplicates I return a consistent external_id, treating 409 as “already created,” so downstream logic can reconcile safely.
+    • Traceable IDs: Successful/duplicate responses include a deterministic-looking external ID (EXT-{invoice_number}-{uniqid}) to simplify logging and tests.
+    • Determinism-ready: While it can randomize scenarios for exploratory testing, it’s trivial to force scenarios (e.g., via config or a seeded function) for repeatable tests.
+    • Production parity: Responses mirror HTTP semantics you’d see from the real API, enabling retry/backoff, error surfacing, and idempotent upserts to be exercised now and reused later.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

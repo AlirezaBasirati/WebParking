@@ -1,5 +1,6 @@
 
-Overview :
+<b>Overview :<b>
+<br>
 This application showcases fundamental skills: clean code practices, solid, the Laravel framework, selected design patterns, and a foundational understanding of architecture and system design. I wrote several tests to illustrate my approach to testing, though coverage is not yet complete. I kept the assignment intentionally simple with minimal dependencies—see the setup instructions for details. While this is a take-home assignment, the design is built to scale; I’m happy to discuss options for expanding it.
     • Focus: clean code, solid, Laravel, common design patterns, basic low level architecture/system design.
     • Tests: several included; coverage not yet complete.

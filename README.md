@@ -31,16 +31,16 @@ Install if not it is installed on your machine:<br>
 Architecture Choices. The service exposes a REST endpoint to receive invoices, persists them, and forwards them asynchronously to the external provider. We use Laravel’s container for dependency injection to isolate boundaries (ExactOnlineInterface, repositories) and enable test doubles. Invoice forwarding runs in a queued job (SendInvoiceToExact) backed by MySQL, which keeps API latency low and enables controlled retries.
 Reliability. Calls to the provider use strict HTTP timeouts and an idempotency key derived from business identifiers. Transient failures (5xx/timeouts) are retried with exponential backoff and jitter; rate limits (429) honor Retry-After. A lightweight circuit breaker in cache avoids hammering the provider during incidents by deferring jobs temporarily.
 Data & Status. Invoice lifecycle is tracked via statuses: draft → posted → forwarded or failed. 
-Duplicate responses (409) are treated as failed if the remote invoice matches our idempotency key. 
-Observability. Every attempt is logged with correlation IDs and persisted to an external call log for auditability. The API returns 201 Accepted with a tracking ID.
+Duplicate responses (409) are treated as failed. 
+Every attempt is logged with correlation IDs and persisted to an external call log for auditability. The API returns 201 Accepted with a tracking ID.
 Testing. We mock ExactOnlineInterface to simulate 429/409/5xx paths, fake the queue for enqueue assertions, and run feature tests against MySQL. This ensures correctness of retries, idempotency, and terminal states without calling the real provider.
 
 <b>* This is a minimal design. It would be more production-ready if I implemented:</b><br>
     • Factory Design Pattern for handling fallback. <br>
-    • More worker than 1.<br>
-    • More jobs to handle each response from Exact. <br>
-    • Service For Log management to support multi service. <br> 
-    • Service For send notifications <br>
+    • More proccess worker.<br>
+    • More jobs to handle each response from Exact taht run in a unique queue. <br>
+    • A Service For Log management to support multi service. <br> 
+    • A Service For send notifications to handle critical events. <br>
 
 <b>My approach to simulating Exact Online</b><br>
     • Interface-first design: I depend on an ExactOnlineInterface so the simulator can be swapped for a real HTTP client without touching business logic.<br>

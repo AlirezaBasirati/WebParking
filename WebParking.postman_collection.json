@@ -1,0 +1,91 @@
+{
+	"info": {
+		"_postman_id": "96120113-caff-4e35-9abf-6de447640f7a",
+		"name": "WebParking",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8807650"
+	},
+	"item": [
+		{
+			"name": "http://localhost/api/sales-invoices",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"invoice_number\": \"INV-2025-200\",\n    \"invoice_date\": \"2025-08-01\",\n    \"due_date\": \"2025-08-31\",\n    \"customer_id\":54621,\n    \"currency\": \"EUR\",\n    \"lines\": [\n        {\n            \"line_no\":1,\n            \"description\": \"Product A\",\n            \"quantity\": 2,\n            \"unit_price\": 10.0,\n            \"vat_code\": \"NL21\",\n            \"line_total\":20.0\n        },\n         {\n            \"line_no\":1,\n            \"description\": \"Product B\",\n            \"quantity\": 3,\n            \"unit_price\": 5.0,\n            \"vat_code\": \"NL21\",\n            \"line_total\":20.0\n        },\n         {\n            \"line_no\":1,\n            \"description\": \"Product B\",\n            \"quantity\": 1,\n            \"unit_price\": 20.0,\n            \"vat_code\": \"NL21\",\n            \"line_total\":20.0\n        }\n\n    ],\n    \"subtotal\":55.0,\n    \"tax\":10.0,\n    \"total\":65.0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{base_url}}/api/sales-invoices",
+					"protocol": "http",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"sales-invoices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/api/log",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://l{{base_url}}/api/log",
+					"protocol": "http",
+					"host": [
+						"l{{base_url}}"
+					],
+					"path": [
+						"api",
+						"log"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/api/invoice",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{base_url}}/api/invoice",
+					"protocol": "http",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"invoice"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

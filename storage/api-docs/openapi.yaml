@@ -1,0 +1,248 @@
+openapi: 3.0.0
+info:
+  title: 'Invoices API'
+  version: 1.0.0
+servers:
+  -
+    url: /
+    description: 'Base server'
+paths:
+  /api/invoice:
+    get:
+      tags:
+        - Invoices
+      summary: 'Get all invoices'
+      description: 'Retrieve a list of all invoices in the system'
+      operationId: getAllInvoices
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceList'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/sales-invoices:
+    post:
+      tags:
+        - Invoices
+      summary: 'Create a new sales invoice'
+      description: 'Create a new sales invoice with line items and dispatch it to the Exact Online queue'
+      operationId: createSalesInvoice
+      parameters:
+        -
+          $ref: '#/components/parameters/RequestUUID'
+        -
+          $ref: '#/components/parameters/RequestID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: 'Invoice created successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateInvoiceResponse'
+        '422':
+          description: 'Validation error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '500':
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      properties:
+        message:
+          type: string
+          example: 'Internal server error'
+      type: object
+    ValidationErrorResponse:
+      properties:
+        message:
+          type: string
+          example: 'The invoice number field is required.'
+        errors:
+          type: object
+          additionalProperties:
+            schema: Schemas
+            type: array
+            items:
+              type: string
+      type: object
+    Schemas:
+      type: array
+      items:
+        type: string
+    LineItem:
+      required:
+        - line_no
+        - description
+        - quantity
+        - unit_price
+        - vat_code
+        - line_total
+      properties:
+        line_no:
+          type: integer
+          example: 1
+        description:
+          type: string
+          example: 'Product A'
+        quantity:
+          type: number
+          format: float
+          example: 2
+        unit_price:
+          type: number
+          format: float
+          example: 50
+        vat_code:
+          type: string
+          example: VAT20
+        line_total:
+          type: number
+          format: float
+          example: 100
+      type: object
+    Invoice:
+      properties:
+        id:
+          type: integer
+          example: 1
+        invoice_number:
+          type: string
+          example: INV-001
+        customer_id:
+          type: integer
+          example: 1
+        invoice_date:
+          type: string
+          format: date
+          example: '2023-12-01'
+        due_date:
+          type: string
+          format: date
+          example: '2023-12-31'
+        currency:
+          type: string
+          example: USD
+        subtotal:
+          type: number
+          format: float
+          example: 100
+        tax:
+          type: number
+          format: float
+          example: 20
+        total:
+          type: number
+          format: float
+          example: 120
+        status:
+          type: string
+          example: posted
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      type: object
+    InvoiceList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Invoice'
+    CreateInvoiceRequest:
+      required:
+        - invoice_number
+        - customer_id
+        - invoice_date
+        - due_date
+        - currency
+        - subtotal
+        - tax
+        - total
+        - lines
+      properties:
+        invoice_number:
+          type: string
+          example: INV-001
+        customer_id:
+          type: integer
+          example: 1
+        invoice_date:
+          type: string
+          format: date
+          example: '2023-12-01'
+        due_date:
+          type: string
+          format: date
+          example: '2023-12-31'
+        currency:
+          type: string
+          example: USD
+        subtotal:
+          type: number
+          format: float
+          example: 100
+        tax:
+          type: number
+          format: float
+          example: 20
+        total:
+          type: number
+          format: float
+          example: 120
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineItem'
+          minItems: 1
+      type: object
+    CreateInvoiceResponse:
+      properties:
+        '0':
+          type: integer
+          example: 201
+        '1':
+          type: string
+          example: 'Your Request Has Dispatched On Queue.'
+        '2':
+          $ref: '#/components/schemas/Invoice'
+      type: object
+  parameters:
+    RequestUUID:
+      name: X-Request-UUID
+      in: header
+      description: 'Unique request UUID'
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RequestID:
+      name: X-Request-ID
+      in: header
+      description: 'Tracking request ID'
+      required: true
+      schema:
+        type: string
+tags:
+  -
+    name: Invoices
+    description: 'Invoice management operations'

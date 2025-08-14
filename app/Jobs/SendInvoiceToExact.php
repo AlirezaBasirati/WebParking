@@ -99,8 +99,13 @@ class SendInvoiceToExact implements ShouldQueue
         InvoiceRepositoryInterface $invoiceRepository,
         $response
     ): void {
-        // Duplicate — mark failed, do not retry
-        $invoiceRepository->updateStatus($this->invoiceId, ['status' => 'failed']);
+        // Duplicate — mark forwarded, do not retry
+        // It was already forwarded: the previous attempt succeeded, but a network issue caused the job to fail without a response.
+        $invoiceRepository->updateStatus($this->invoiceId, [
+            'status'       => 'forwarded',
+            'forwarded_at' => Carbon::now(),
+            'exact_id'     => $response->external_id,
+        ]);
     }
 
     protected function handleStatusSuccess(
